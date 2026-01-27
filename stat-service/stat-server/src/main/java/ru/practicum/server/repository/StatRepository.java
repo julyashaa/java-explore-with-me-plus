@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.server.model.EndpointHit;
+import ru.practicum.server.repository.query.StatQueries;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,23 +13,9 @@ import java.util.List;
 @Repository
 public interface StatRepository extends JpaRepository<EndpointHit, Long> {
 
-    @Query("""
-            SELECT new ru.practicum.dto.ViewStatsDto(h.app, h.uri, COUNT(h.ip))
-            FROM EndpointHit h
-            WHERE h.timestamp BETWEEN :start AND :end
-            AND (:uris IS NULL OR h.uri IN :uris)
-            GROUP BY h.app, h.uri
-            ORDER BY COUNT(h.ip) DESC
-            """)
+    @Query(StatQueries.STATS)
     List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris);
 
-    @Query("""
-            SELECT new ru.practicum.dto.ViewStatsDto(h.app, h.uri, COUNT(DISTINCT h.ip))
-            FROM EndpointHit h
-            WHERE h.timestamp BETWEEN :start AND :end
-            AND (:uris IS NULL OR h.uri IN :uris)
-            GROUP BY h.app, h.uri
-            ORDER BY COUNT(DISTINCT h.ip) DESC
-            """)
+    @Query(StatQueries.UNIQUE_STATS)
     List<ViewStatsDto> getUniqueStats(LocalDateTime start, LocalDateTime end, List<String> uris);
 }
