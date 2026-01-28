@@ -31,7 +31,7 @@ services:
     ports:
       - "5433:5432"
 
-  main-service:
+  ewm-service:
     build: ./main-service
     container_name: ewm-service
     ports:
