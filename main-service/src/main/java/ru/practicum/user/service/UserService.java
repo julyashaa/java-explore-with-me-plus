@@ -36,6 +36,10 @@ public class UserService {
         return page.map(userMapper::toDto).getContent();
     }
 
+    public UserDto getUser(long id) {
+        return userMapper.toDto(userRepository.findById(id).get());
+    }
+
     @Transactional
     public UserDto create(NewUserRequest dto) {
         User user = userMapper.toEntity(dto);
