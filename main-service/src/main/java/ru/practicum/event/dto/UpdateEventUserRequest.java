@@ -8,7 +8,6 @@ import lombok.Builder;
 import ru.practicum.event.enums.EventStateActionEnum;
 import ru.practicum.event.model.Location;
 
-// Основной DTO
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

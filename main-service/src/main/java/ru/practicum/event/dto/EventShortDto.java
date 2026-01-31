@@ -16,6 +16,11 @@ import ru.practicum.user.dto.UserShortDto;
 @Builder
 public class EventShortDto {
 
+    private Long id; // Идентификатор
+
+    @NotBlank
+    private String title; // Заголовок
+
     @NotBlank
     private String annotation; // Краткое описание
 
@@ -28,16 +33,11 @@ public class EventShortDto {
     @NotBlank
     private String eventDate; // Дата события в формате "yyyy-MM-dd HH:mm:ss"
 
-    private Long id; // Идентификатор
-
     @NotNull
     @Valid
     private UserShortDto initiator; // Пользователь
 
     private Boolean paid; // Нужно ли платить
-
-    @NotBlank
-    private String title; // Заголовок
 
     private Long views; // Количество просмотров
 }

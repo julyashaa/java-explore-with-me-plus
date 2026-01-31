@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.category.dto.CategoryDto;
+import ru.practicum.event.enums.EventState;
 import ru.practicum.event.model.Location;
 import ru.practicum.user.dto.UserShortDto;
 
@@ -51,10 +52,11 @@ public class EventFullDto {
     @Min(0)
     private Integer participantLimit; // Ограничение участников (0 = нет ограничения)
 
-    private String state; // Статус события
+    private EventState state; // Статус события
 
-    @JsonFormat(pattern = DATE_TIME_PATTERN)
-    private String createdOn; // Дата и время создания
+    @NotBlank
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
+    private LocalDateTime createdOn; // Дата и время создания
 
     @NotNull
     @Valid
@@ -62,7 +64,9 @@ public class EventFullDto {
 
     private Integer confirmedRequests; // Количество одобренных заявок
 
-    private String publishedOn; // Дата публикации
+    @NotBlank
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
+    private LocalDateTime publishedOn; // Дата публикации
 
     private Long views; // Количество просмотров
 

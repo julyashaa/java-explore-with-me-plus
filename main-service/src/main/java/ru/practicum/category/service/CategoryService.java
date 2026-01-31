@@ -29,6 +29,10 @@ public class CategoryService {
                 .getContent();
     }
 
+    public List<CategoryDto> getAll() {
+        return categoryRepository.findAll().stream().map(categoryMapper::toDto).toList();
+    }
+
     public CategoryDto getById(long catId) {
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found"));

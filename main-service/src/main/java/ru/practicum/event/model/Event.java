@@ -1,14 +1,15 @@
 package ru.practicum.event.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
+import ru.practicum.event.enums.EventState;
 
 import java.time.LocalDateTime;
+
+import static ru.practicum.constants.DatePatternConstant.DATE_TIME_PATTERN;
 
 @Entity
 @Table(name = "events")
@@ -35,6 +36,7 @@ public class Event {
     private Boolean paid;
 
     @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
     private LocalDateTime eventDate;
 
     @NotNull
@@ -46,12 +48,19 @@ public class Event {
     private String description;
 
     @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
     private LocalDateTime createdOn;
 
     @Min(0)
     private Integer participantLimit;
 
     private Boolean requestModeration;
+
+    @Enumerated(EnumType.STRING)
+    private EventState state;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
+    private LocalDateTime publishedOn;
 
     @NotNull
     @Embedded

@@ -29,6 +29,8 @@ CREATE TABLE IF NOT EXISTS events (
     request_moderation BOOLEAN,
     lat DOUBLE PRECISION,
     lon DOUBLE PRECISION,
+    state VARCHAR(255) NOT NULL,
+    published_on TIMESTAMP,
     CONSTRAINT fk_category FOREIGN KEY (category) REFERENCES categories(id),
     CONSTRAINT fk_initiator FOREIGN KEY (initiator) REFERENCES users(id)
 );
