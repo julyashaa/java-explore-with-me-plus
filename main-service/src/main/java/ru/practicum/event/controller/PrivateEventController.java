@@ -7,6 +7,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.service.EventService;
+import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.request.dto.EventRequestStatusUpdateResult;
+import ru.practicum.request.dto.ParticipationRequestDto;
+import ru.practicum.request.service.RequestService;
 
 import java.util.List;
 
@@ -16,6 +20,7 @@ import java.util.List;
 @RequestMapping("/users/{userId}/events")
 public class PrivateEventController {
     private final EventService eventService;
+    private final RequestService requestService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -43,5 +48,22 @@ public class PrivateEventController {
             @RequestBody UpdateEventUserRequest request) {
 
         return eventService.updateEvent(userId, eventId, request);
+    }
+
+    @GetMapping("/{eventId}/requests")
+    public List<ParticipationRequestDto> privateGetEventParticipants(
+            @PathVariable Long userId,
+            @PathVariable Long eventId
+    ) {
+        return requestService.getEventParticipants(userId, eventId);
+    }
+
+    @PatchMapping("/{eventId}/requests")
+    public EventRequestStatusUpdateResult privateChangeRequestStatus(
+            @PathVariable Long userId,
+            @PathVariable Long eventId,
+            @RequestBody EventRequestStatusUpdateRequest request
+    ) {
+        return requestService.changeRequestStatus(userId, eventId, request);
     }
 }
