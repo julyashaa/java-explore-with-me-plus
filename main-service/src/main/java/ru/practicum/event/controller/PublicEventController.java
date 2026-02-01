@@ -1,8 +1,10 @@
 package ru.practicum.event.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.client.ClientForStat;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.service.EventService;
 
@@ -14,10 +16,13 @@ import java.util.List;
 @RequestMapping("/events")
 public class PublicEventController {
     private final EventService eventService;
+    private final ClientForStat client = new ClientForStat();
 
     @GetMapping("/{id}")
-    public EventFullDto getEventById(@PathVariable Long id) {
-        return eventService.getPublishedEventById(id);
+    public EventFullDto getEventById(@PathVariable Long id, HttpServletRequest request) {
+        EventFullDto eventFullDto = eventService.getPublishedEventById(id);
+        client.hit(request.getRemoteAddr(), "/events/" + id);
+        return eventFullDto;
     }
 
     @GetMapping
@@ -28,8 +33,12 @@ public class PublicEventController {
             @RequestParam(required = false) String rangeStart,
             @RequestParam(required = false) String rangeEnd,
             @RequestParam(defaultValue = "0") int from,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request
     ) {
-        return eventService.getEvents(users, states, categories, rangeStart, rangeEnd, from, size);
+        List<EventFullDto> eventFullDtos = eventService.getEvents(users, states, categories, rangeStart, rangeEnd,
+                from, size);
+        client.hit(request.getRemoteAddr());
+        return eventFullDtos;
     }
 }

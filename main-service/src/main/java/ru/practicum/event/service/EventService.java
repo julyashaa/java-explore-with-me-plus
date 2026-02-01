@@ -8,11 +8,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.category.service.CategoryService;
+import ru.practicum.client.ClientForStat;
+import ru.practicum.client.ViewStatsDtoMain;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.enums.EventState;
 import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
+import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.ForbiddenException;
 import ru.practicum.exception.NotFoundException;
@@ -38,14 +41,22 @@ public class EventService {
     private final EventRepository eventRepository;
     private final UserService userService;
     private final CategoryService categoryService;
+    private final ClientForStat client = new ClientForStat();
 
     @Transactional
     public EventFullDto create(NewEventDto dto, long userId) {
         log.info("Получен запрос на создание события от пользователя с ID={} dto={}", userId, dto);
+        if (dto.getEventDate().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Не корректное дата события");
+        }
         Event event = eventMapper.toEntity(dto);
         event.setCreatedOn(LocalDateTime.now());
         event.setInitiator(userId);
         event.setState(EventState.PENDING);
+        event.setViews(0L);
+        event.setPaid(false);
+        event.setParticipantLimit(0);
+        event.setRequestModeration(true);
         Event eventSave = eventRepository.save(event);
         log.info("Успешно создано событие с ID={}", eventSave);
         return fillingFieldsInEventFullDto(event);
@@ -64,7 +75,7 @@ public class EventService {
     }
 
     public EventDto getEventById(Long eventId) {
-        log.info("Запрос получения события по его ID = {}", eventId);
+        log.info("getEventById - Запрос получения события по его ID = {}", eventId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие с ID=" + eventId + " не найдено"));
         log.info("Найдено событие: {}", event);
@@ -92,7 +103,7 @@ public class EventService {
         if (request.getEventDate() != null) {
             newEventDate = LocalDateTime.parse(request.getEventDate(), DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
             if (newEventDate.isBefore(LocalDateTime.now().plusHours(2))) {
-                throw new ConflictException("Дата и время события должны быть не раньше чем через 2 часа");
+                throw new BadRequestException("Дата и время события должны быть не раньше чем через 2 часа");
             }
             event.setEventDate(newEventDate);
         }
@@ -151,8 +162,8 @@ public class EventService {
             int from,
             int size
     ) {
-        log.info("Получение событий: users={}, start={}, end={}, from={}, size={}, states={}",
-                users, rangeStart, rangeEnd, from, size, states);
+        log.info("Получение событий: users={}, categories={}, start={}, end={}, from={}, size={}, states={}",
+                users, categories, rangeStart, rangeEnd, from, size, states);
         LocalDateTime start = null;
         LocalDateTime end = null;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
@@ -165,6 +176,10 @@ public class EventService {
             }
         } catch (Exception e) {
             throw new IllegalArgumentException("Некорректный формат даты");
+        }
+
+        if (start != null && start.isAfter(end)) {
+            throw new BadRequestException("Конец интервала не может быть раньше начала");
         }
 
         // Вычисляем номер страницы
@@ -182,6 +197,7 @@ public class EventService {
         if (categories != null && !(categories.size() == 1 && categories.getFirst() == 0L)) {
             categoriesParam = categories;
         }
+
         List<EventState> statesParam = (states != null && !states.isEmpty()) ? convertStringsToEventStates(states) : null;
 
         List<Event> events = eventRepository.findEventsWithFilters(
@@ -218,39 +234,41 @@ public class EventService {
         LocalDateTime now = LocalDateTime.now();
 
         // Внутренние проверки перед выполнением действия
-        switch (action) {
-            case "PUBLISH_EVENT":
-                validatePublish(event, request, now);
-                // Обновляем статус и дату публикации
-                event.setState(EventState.PUBLISHED);
-                event.setPublishedOn(now);
-                break;
-            case "CANCEL_EVENT":
-                validateCancel(event);
-                event.setState(EventState.CANCELED);
-                break;
-            default:
-                break;
+        if (action != null) {
+            switch (action) {
+                case "PUBLISH_EVENT":
+                    validatePublish(event, request, now);
+                    // Обновляем статус и дату публикации
+                    event.setState(EventState.PUBLISHED);
+                    event.setPublishedOn(now);
+                    break;
+                case "CANCEL_EVENT":
+                    validateCancel(event);
+                    event.setState(EventState.CANCELED);
+                    break;
+                default:
+                    break;
+            }
         }
 
         // Обновление основных полей, если они заданы
         if (request.getTitle() != null) {
             if (request.getTitle().length() < 3 || request.getTitle().length() > 120) {
-                throw new IllegalArgumentException("Заголовок должен быть от 3 до 120 символов");
+                throw new BadRequestException("Заголовок должен быть от 3 до 120 символов");
             }
             event.setTitle(request.getTitle());
         }
 
         if (request.getAnnotation() != null) {
             if (request.getAnnotation().length() < 20 || request.getAnnotation().length() > 2000) {
-                throw new IllegalArgumentException("Длина аннотации некорректна");
+                throw new BadRequestException("Длина аннотации некорректна");
             }
             event.setAnnotation(request.getAnnotation());
         }
 
         if (request.getDescription() != null) {
             if (request.getDescription().length() < 20 || request.getDescription().length() > 7000) {
-                throw new IllegalArgumentException("Длина описания некорректна");
+                throw new BadRequestException("Длина описания некорректна");
             }
             event.setDescription(request.getDescription());
         }
@@ -260,7 +278,7 @@ public class EventService {
             try {
                 newEventDate = LocalDateTime.parse(request.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             } catch (DateTimeParseException e) {
-                throw new IllegalArgumentException("Некорректный формат даты");
+                throw new BadRequestException("Некорректный формат даты");
             }
             validateEventDate(newEventDate, now);
             event.setEventDate(newEventDate);
@@ -280,7 +298,7 @@ public class EventService {
 
         if (request.getParticipantLimit() != null) {
             if (request.getParticipantLimit() < 0) {
-                throw new IllegalArgumentException("Число участников не может быть отрицательным");
+                throw new BadRequestException("Число участников не может быть отрицательным");
             }
             event.setParticipantLimit(request.getParticipantLimit());
         }
@@ -294,12 +312,22 @@ public class EventService {
         return fillingFieldsInEventFullDto(event);
     }
 
+    @Transactional
     public EventFullDto getPublishedEventById(Long id) {
+        log.info("getPublishedEventById - Запрос получения события по его ID = {}", id);
         Optional<Event> optionalEvent = eventRepository.findById(id);
         if (optionalEvent.isEmpty() || !optionalEvent.get().getState().equals(EventState.PUBLISHED)) {
             throw new NotFoundException("Событие с ID=" + id + " не найдено");
         }
-        return fillingFieldsInEventFullDto(optionalEvent.get());
+        Event event = optionalEvent.get();
+        List<String> uris = new ArrayList<>(Collections.emptyList());
+        uris.add("/events/" + event.getId());
+        List<ViewStatsDtoMain> viewStatsDtoMains = client.getStats(uris);
+        if (!viewStatsDtoMains.isEmpty()) {
+            event.setViews(viewStatsDtoMains.getFirst().getHits());
+        }
+        log.info("Найдено событие: {}", event);
+        return fillingFieldsInEventFullDto(event);
     }
 
     private void validatePublish(Event event, UpdateEventAdminRequest request, LocalDateTime now) {
@@ -341,7 +369,7 @@ public class EventService {
 
     private void validateEventDate(LocalDateTime date, LocalDateTime now) {
         if (date.isBefore(now.plusHours(1))) {
-            throw new IllegalArgumentException("Дата события должна быть не раньше, чем через час от текущего времени");
+            throw new BadRequestException("Дата события должна быть не раньше, чем через час от текущего времени");
         }
     }
 

@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS events (
     lon DOUBLE PRECISION,
     state VARCHAR(255) NOT NULL,
     published_on TIMESTAMP,
+    views INT DEFAULT (0) NOT NULL,
     CONSTRAINT fk_category FOREIGN KEY (category) REFERENCES categories(id),
     CONSTRAINT fk_initiator FOREIGN KEY (initiator) REFERENCES users(id)
 );
