@@ -19,6 +19,7 @@ import ru.practicum.request.repository.ParticipationRequestRepository;
 import ru.practicum.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -71,8 +72,9 @@ public class RequestService {
             status = RequestStatus.PENDING;
         }
 
+        LocalDateTime createdAt = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
         ParticipationRequest request = ParticipationRequest.builder()
-                .created(LocalDateTime.now())
+                .created(createdAt)
                 .event(eventId)
                 .requester(userId)
                 .status(status)
