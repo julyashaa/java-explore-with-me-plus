@@ -23,13 +23,13 @@ public class PublicCompilationController {
 
     @GetMapping("/{compId}")
     public CompilationDto getCompilationById(@PathVariable Long compId) {
-        log.info("получение подборки по ID : GET /compilations/{}", compId);
+        log.info("получение подборки по ID: GET /compilations/{}", compId);
         return compilationService.getCompilationById(compId);
     }
 
     @GetMapping
     public List<CompilationDto> getCompilations(@Validated GetCompilationsDtoParams params) {
-        log.info("получение подборок : GET /compilations?pinned={}&from={}&size={}",
+        log.info("получение подборок: GET /compilations?pinned={}&from={}&size={}",
                 params.isPinned(),
                 params.getFrom(),
                 params.getSize());

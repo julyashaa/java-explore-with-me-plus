@@ -92,6 +92,16 @@ public class CompilationServiceImpl implements CompilationService {
                 }).toList();
     }
 
+    @Override
+    public void deleteCompilation(Long compId) {
+        log.info("Удаление подборки с ID: {}", compId);
+
+        getCompilationOrElseThrow(compId);
+
+        compilationRepository.deleteById(compId);
+        log.info("Подборка с ID {} удалена", compId);
+    }
+
     private void throwIfTitleExist(String title) {
         if (compilationRepository.existsByTitle(title)) {
             throw new ConflictException("Подборка с названием '" + title + "' уже существует");
