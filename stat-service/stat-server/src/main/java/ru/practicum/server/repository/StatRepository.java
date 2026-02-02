@@ -18,4 +18,7 @@ public interface StatRepository extends JpaRepository<EndpointHit, Long> {
 
     @Query(StatQueries.UNIQUE_STATS)
     List<ViewStatsDto> getUniqueStats(LocalDateTime start, LocalDateTime end, List<String> uris);
+
+    @Query(StatQueries.UNIQUE_ALL_STATS)
+    List<ViewStatsDto> getUniqueAllStats(List<String> uris);
 }

@@ -62,6 +62,8 @@ public class Event {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
     private LocalDateTime publishedOn;
 
+    private Long views;
+
     @NotNull
     @Embedded
     @AttributeOverrides({

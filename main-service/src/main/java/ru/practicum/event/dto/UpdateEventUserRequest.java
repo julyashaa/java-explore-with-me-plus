@@ -1,5 +1,6 @@
 package ru.practicum.event.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.AllArgsConstructor;
@@ -28,6 +29,7 @@ public class UpdateEventUserRequest {
 
     private Boolean paid; // Новое значение флага платности
 
+    @Min(0)
     private Integer participantLimit; // Новый лимит участников
 
     private Boolean requestModeration; // Нужна ли пре-модерация заявок
