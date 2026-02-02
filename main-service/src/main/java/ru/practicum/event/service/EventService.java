@@ -19,6 +19,8 @@ import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.ForbiddenException;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.request.model.RequestStatus;
+import ru.practicum.request.service.RequestService;
 import ru.practicum.user.dto.UserDto;
 import ru.practicum.user.dto.UserShortDto;
 import ru.practicum.user.service.UserService;
@@ -41,6 +43,7 @@ public class EventService {
     private final EventRepository eventRepository;
     private final UserService userService;
     private final CategoryService categoryService;
+    private final RequestService requestService;
     private final ClientForStat client = new ClientForStat();
 
     @Transactional
@@ -63,9 +66,10 @@ public class EventService {
         if (event.getRequestModeration() == null) {
             event.setRequestModeration(true);
         }
-        Event eventSave = eventRepository.save(event);
-        log.info("Успешно создано событие с ID={}", eventSave);
-        return fillingFieldsInEventFullDto(event);
+        eventRepository.save(event);
+        EventFullDto eventFullDto = fillingFieldsInEventFullDto(event);
+        log.info("Успешно создано событие с ID={}", eventFullDto);
+        return eventFullDto;
     }
 
     public List<EventShortDto> getEventsForUser(Long initiatorId, Integer from, Integer size) {
@@ -155,8 +159,9 @@ public class EventService {
         }
 
         eventRepository.save(event);
-        log.info("Событие {} успешно сохранено и обновлено", event);
-        return fillingFieldsInEventFullDto(event);
+        EventFullDto eventFullDto = fillingFieldsInEventFullDto(event);
+        log.info("Событие {} успешно сохранено и обновлено", eventFullDto);
+        return eventFullDto;
     }
 
     public List<EventFullDto> getEvents(
@@ -313,9 +318,10 @@ public class EventService {
             event.setRequestModeration(request.getRequestModeration());
         }
         eventRepository.save(event);
-        log.info("Событие успешно сохранено и обновлено {}", event);
+        EventFullDto eventFullDto = fillingFieldsInEventFullDto(event);
+        log.info("Событие успешно сохранено и обновлено {}", eventFullDto);
 
-        return fillingFieldsInEventFullDto(event);
+        return eventFullDto;
     }
 
     @Transactional
@@ -414,6 +420,8 @@ public class EventService {
         EventFullDto eventDto = eventMapper.toFullDto(event);
         eventDto.setInitiator(new UserShortDto(users.getId(), users.getName()));
         eventDto.setCategory(categoryDto);
+        Integer confirmRequests = requestService.getEventParticipantsWithConfirm(event.getInitiator(), event.getId());
+        eventDto.setConfirmedRequests(confirmRequests != null ? confirmRequests : 0);
         return eventDto;
     }
 
@@ -429,6 +437,13 @@ public class EventService {
 
         List<EventFullDto> eventFullDtos = eventMapper.toFullDtos(events);
 
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        HashMap<Long, Integer> participantLimitMapConfirm = requestService.getAllEventParticipiants(eventIds,
+                RequestStatus.CONFIRMED);
+
         for (int i = 0; i < events.size(); i++) {
             Event event = events.get(i);
             EventFullDto dto = eventFullDtos.get(i);
@@ -439,6 +454,8 @@ public class EventService {
             if (event.getInitiator() != null) {
                 dto.setInitiator(userMap.get(event.getInitiator()));
             }
+            Integer count = participantLimitMapConfirm.get(event.getId());
+            dto.setConfirmedRequests(count != null ? count : 0);
         }
 
         return eventFullDtos;
@@ -456,6 +473,13 @@ public class EventService {
 
         List<EventShortDto> eventShortDtos = eventMapper.toShortDtos(events);
 
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        HashMap<Long, Integer> participantLimitMapConfirm = requestService.getAllEventParticipiants(eventIds,
+                RequestStatus.CONFIRMED);
+
         for (int i = 0; i < events.size(); i++) {
             Event event = events.get(i);
             EventShortDto dto = eventShortDtos.get(i);
@@ -466,6 +490,7 @@ public class EventService {
             if (event.getInitiator() != null) {
                 dto.setInitiator(userMap.get(event.getInitiator()));
             }
+            dto.setConfirmedRequests(participantLimitMapConfirm.get(event.getId()));
         }
 
         return eventShortDtos;

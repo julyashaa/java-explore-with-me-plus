@@ -28,7 +28,7 @@ public class EventShortDto {
     @Valid
     private CategoryDto category; // Категория
 
-    private Long confirmedRequests; // Количество одобренных заявок
+    private Integer confirmedRequests; // Количество одобренных заявок
 
     @NotBlank
     private String eventDate; // Дата события в формате "yyyy-MM-dd HH:mm:ss"
