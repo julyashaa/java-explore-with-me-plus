@@ -62,7 +62,7 @@ public class RequestService {
         }
 
         RequestStatus status;
-        if (Boolean.FALSE.equals(event.getRequestModeration()) || limit == 0) {
+        if (Boolean.FALSE.equals(event.getRequestModeration())) {
             status = RequestStatus.CONFIRMED;
         } else {
             status = RequestStatus.PENDING;
