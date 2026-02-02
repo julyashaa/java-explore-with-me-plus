@@ -99,6 +99,23 @@ public class RequestService {
         return requestMapper.toDtos(requests);
     }
 
+    public Integer getEventParticipantsWithConfirm(Long userId, Long eventId) {
+        ensureUserExists(userId);
+        return Math.toIntExact(requestRepository.countByEventAndStatus(eventId, RequestStatus.CONFIRMED));
+    }
+
+    public HashMap<Long, Integer> getAllEventParticipiants(List<Long> eventIds, RequestStatus status) {
+        List<Object[]> counts = requestRepository.countRequestsByEventIdsAndStatus(eventIds, status);
+
+        HashMap<Long, Integer> resultMap = new HashMap<>();
+        for (Object[] row : counts) {
+            Long eventId = (Long) row[0];
+            Long countLong = (Long) row[1];
+            resultMap.put(eventId, countLong != null ? countLong.intValue() : 0);
+        }
+        return resultMap;
+    }
+
     @Transactional
     public EventRequestStatusUpdateResult changeRequestStatus(
             Long userId,
