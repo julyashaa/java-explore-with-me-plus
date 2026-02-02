@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.compilation.dto.CompilationDto;
 import ru.practicum.compilation.dto.GetCompilationsDtoParams;
 import ru.practicum.compilation.dto.NewCompilationDto;
+import ru.practicum.compilation.dto.UpdateCompilationRequest;
 import ru.practicum.compilation.mapper.CompilationMapper;
 import ru.practicum.compilation.model.Compilation;
 import ru.practicum.compilation.repository.CompilationRepository;
@@ -90,6 +91,37 @@ public class CompilationServiceImpl implements CompilationService {
                     result.setEvents(mapEventsToEventsShortDto(compilation.getEvents()));
                     return result;
                 }).toList();
+    }
+
+    @Override
+    public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest updateRequest) {
+        log.info("Обновление подборки с ID: {}", compId);
+
+        Compilation compilation = getCompilationOrElseThrow(compId);
+
+        String title = compilation.getTitle();
+        if (title != null && !title.isEmpty()) {
+            compilation.setTitle(updateRequest.getTitle());
+        }
+
+        Boolean pinned = updateRequest.getPinned();
+        if (pinned != null) {
+            compilation.setPinned(pinned);
+        }
+
+        Set<Long> requestEvents = updateRequest.getEvents();
+        if (requestEvents != null) {
+            Set<Event> events = new HashSet<>(eventRepository.findAllById(requestEvents));
+            compilation.setEvents(events);
+        }
+
+        Compilation updatedCompilation = compilationRepository.save(compilation);
+        log.info("Подборка с ID {} обновлена", compId);
+
+        CompilationDto result = compilationMapper.toDto(updatedCompilation);
+        result.setEvents(mapEventsToEventsShortDto(updatedCompilation.getEvents()));
+
+        return result;
     }
 
     @Override
