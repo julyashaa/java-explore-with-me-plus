@@ -2,9 +2,12 @@ package ru.practicum.compilation.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.compilation.dto.CompilationDto;
+import ru.practicum.compilation.dto.GetCompilationsDtoParams;
 import ru.practicum.compilation.dto.NewCompilationDto;
 import ru.practicum.compilation.mapper.CompilationMapper;
 import ru.practicum.compilation.model.Compilation;
@@ -67,6 +70,26 @@ public class CompilationServiceImpl implements CompilationService {
         result.setEvents(mapEventsToEventsShortDto(compilation.getEvents()));
 
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CompilationDto> getCompilations(GetCompilationsDtoParams params) {
+        log.info("Получение подборок с параметрами {}", params);
+
+        Pageable pageable = PageRequest.of(params.getFrom() / params.getSize(), params.getSize());
+
+        boolean pinned = params.isPinned();
+        List<Compilation> compilations = pinned ?
+                compilationRepository.findAllByPinned(pinned, pageable).getContent() :
+                compilationRepository.findAll(pageable).getContent();
+
+        return compilations.stream()
+                .map(compilation -> {
+                    CompilationDto result = compilationMapper.toDto(compilation);
+                    result.setEvents(mapEventsToEventsShortDto(compilation.getEvents()));
+                    return result;
+                }).toList();
     }
 
     private void throwIfTitleExist(String title) {
