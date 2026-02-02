@@ -1,9 +1,9 @@
 package ru.practicum.compilation.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.compilation.dto.CompilationDto;
 import ru.practicum.compilation.dto.NewCompilationDto;
 import ru.practicum.compilation.mapper.CompilationMapper;
@@ -14,6 +14,7 @@ import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.exception.ConflictException;
+import ru.practicum.exception.NotFoundException;
 
 import java.util.HashSet;
 import java.util.List;
@@ -49,10 +50,23 @@ public class CompilationServiceImpl implements CompilationService {
         Compilation savedCompilation = compilationRepository.save(compilation);
         log.info("Подборка создана с ID: {}", savedCompilation.getId());
 
-        CompilationDto compilationDto = compilationMapper.toDto(savedCompilation);
-        compilationDto.setEvents(mapEventsToEventsShortDto(savedCompilation.getEvents()));
+        CompilationDto result = compilationMapper.toDto(savedCompilation);
+        result.setEvents(mapEventsToEventsShortDto(savedCompilation.getEvents()));
 
-        return compilationDto;
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CompilationDto getCompilationById(Long compId) {
+        log.info("Получение подборки с ID: {}", compId);
+
+        Compilation compilation = getCompilationOrElseThrow(compId);
+
+        CompilationDto result = compilationMapper.toDto(compilation);
+        result.setEvents(mapEventsToEventsShortDto(compilation.getEvents()));
+
+        return result;
     }
 
     private void throwIfTitleExist(String title) {
@@ -68,5 +82,10 @@ public class CompilationServiceImpl implements CompilationService {
         return events.stream()
                 .map(eventMapper::toShortDto)
                 .collect(Collectors.toSet());
+    }
+
+    private Compilation getCompilationOrElseThrow(Long id) {
+        return compilationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Compilation with id " + id + " not found"));
     }
 }

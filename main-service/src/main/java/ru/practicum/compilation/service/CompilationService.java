@@ -6,4 +6,6 @@ import ru.practicum.compilation.dto.NewCompilationDto;
 public interface CompilationService {
 
     CompilationDto createCompilation(NewCompilationDto compilationDto);
+
+    CompilationDto getCompilationById(Long compId);
 }
