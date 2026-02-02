@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.user.dto.NewUserRequest;
 import ru.practicum.user.dto.UserDto;
+import ru.practicum.user.dto.UserShortDto;
 import ru.practicum.user.mapper.UserMapper;
 import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepository;
@@ -34,6 +35,14 @@ public class UserService {
         }
 
         return page.map(userMapper::toDto).getContent();
+    }
+
+    public List<UserShortDto> getAllUserShort() {
+        return userRepository.findAll().stream().map(userMapper::toShortDto).toList();
+    }
+
+    public UserDto getUser(long id) {
+        return userMapper.toDto(userRepository.findById(id).get());
     }
 
     @Transactional

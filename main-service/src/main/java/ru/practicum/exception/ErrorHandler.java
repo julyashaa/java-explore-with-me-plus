@@ -64,6 +64,14 @@ public class ErrorHandler {
                 e.getMessage());
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleBadRequestException(BadRequestException e) {
+        return baseError(HttpStatus.BAD_REQUEST,
+                "Incorrectly made request.",
+                e.getMessage());
+    }
+
     @ExceptionHandler({ConflictException.class, DataIntegrityViolationException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleConflict(RuntimeException e) {
