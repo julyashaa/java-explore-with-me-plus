@@ -35,3 +35,17 @@ CREATE TABLE IF NOT EXISTS events (
     CONSTRAINT fk_category FOREIGN KEY (category) REFERENCES categories(id),
     CONSTRAINT fk_initiator FOREIGN KEY (initiator) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS compilations
+(
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    title      VARCHAR(50) NOT NULL UNIQUE CHECK (length(title) >= 1),
+    pinned     BOOLEAN   NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS compilation_events
+(
+    compilation_id BIGINT NOT NULL REFERENCES compilations (id) ON DELETE CASCADE,
+    event_id       BIGINT NOT NULL REFERENCES events (id) ON DELETE CASCADE,
+    PRIMARY KEY (compilation_id, event_id)
+);
