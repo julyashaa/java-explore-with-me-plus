@@ -54,9 +54,15 @@ public class EventService {
         event.setInitiator(userId);
         event.setState(EventState.PENDING);
         event.setViews(0L);
-        event.setPaid(false);
-        event.setParticipantLimit(0);
-        event.setRequestModeration(true);
+        if (event.getPaid() == null) {
+            event.setPaid(false);
+        }
+        if (event.getParticipantLimit() == null) {
+            event.setParticipantLimit(0);
+        }
+        if (event.getRequestModeration() == null) {
+            event.setRequestModeration(true);
+        }
         Event eventSave = eventRepository.save(event);
         log.info("Успешно создано событие с ID={}", eventSave);
         return fillingFieldsInEventFullDto(event);
