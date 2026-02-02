@@ -16,7 +16,7 @@ import ru.practicum.request.mapper.RequestMapper;
 import ru.practicum.request.model.ParticipationRequest;
 import ru.practicum.request.model.RequestStatus;
 import ru.practicum.request.repository.ParticipationRequestRepository;
-import ru.practicum.user.repository.UserRepository;
+import ru.practicum.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -28,7 +28,7 @@ import java.util.*;
 public class RequestService {
     private final ParticipationRequestRepository requestRepository;
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final RequestMapper requestMapper;
 
     public List<ParticipationRequestDto> getUserRequests(Long userId) {
@@ -198,9 +198,7 @@ public class RequestService {
     }
 
     private void ensureUserExists(Long userId) {
-        if (userId == null || !userRepository.existsById(userId)) {
-            throw new NotFoundException("User with id=" + userId + " was not found");
-        }
+        userService.ensureUserExists(userId);
     }
 
     private Event getEventOrThrow(Long eventId) {

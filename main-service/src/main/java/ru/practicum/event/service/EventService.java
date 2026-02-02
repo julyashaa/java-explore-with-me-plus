@@ -17,7 +17,6 @@ import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConflictException;
-import ru.practicum.exception.ForbiddenException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.request.model.RequestStatus;
 import ru.practicum.request.service.RequestService;
@@ -100,7 +99,7 @@ public class EventService {
 
         // Проверка, что пользователь — инициатор
         if (!event.getInitiator().equals(userId)) {
-            throw new ForbiddenException("Вы не являетесь инициатором этого события");
+            throw new ConflictException("Вы не являетесь инициатором этого события");
         }
 
         // Проверка статуса события
@@ -253,7 +252,7 @@ public class EventService {
                     event.setState(EventState.PUBLISHED);
                     event.setPublishedOn(now);
                     break;
-                case "CANCEL_EVENT":
+                case "REJECT_EVENT":
                     validateCancel(event);
                     event.setState(EventState.CANCELED);
                     break;
@@ -344,11 +343,11 @@ public class EventService {
 
     private void validatePublish(Event event, UpdateEventAdminRequest request, LocalDateTime now) {
         if (EventState.PUBLISHED.equals(event.getState())) {
-            throw new ForbiddenException("Невозможно опубликовать — событие уже опубликовано");
+            throw new ConflictException("Невозможно опубликовать — событие уже опубликовано");
         }
 
         if (!EventState.PENDING.equals(event.getState())) {
-            throw new ForbiddenException("Можно публиковать только события в состоянии ожидания");
+            throw new ConflictException("Можно публиковать только события в состоянии ожидания");
         }
 
         // Проверка, что дата события не раньше, чем через 1 час от текущего времени
@@ -360,22 +359,22 @@ public class EventService {
                 throw new IllegalArgumentException("Некорректный формат даты");
             }
             if (eventDate.isBefore(now.plusHours(1))) {
-                throw new ForbiddenException("Дата мероприятия должна быть не раньше, чем через час от текущего времени");
+                throw new ConflictException("Дата мероприятия должна быть не раньше, чем через час от текущего времени");
             }
         } else if (event.getEventDate() != null) {
             // если дата не передана в запрос, берем старую, но проверять всё равно
             if (event.getEventDate().isBefore(now.plusHours(1))) {
-                throw new ForbiddenException("Дата мероприятия должна быть не раньше, чем через час от текущего времени");
+                throw new ConflictException("Дата мероприятия должна быть не раньше, чем через час от текущего времени");
             }
         }
     }
 
     private void validateCancel(Event event) {
         if (EventState.PUBLISHED.equals(event.getState())) {
-            throw new ForbiddenException("Невозможно отменить опубликованное событие");
+            throw new ConflictException("Невозможно отменить опубликованное событие");
         }
         if (EventState.CANCELED.equals(event.getState())) {
-            throw new ForbiddenException("Событие уже отменено");
+            throw new ConflictException("Событие уже отменено");
         }
     }
 
