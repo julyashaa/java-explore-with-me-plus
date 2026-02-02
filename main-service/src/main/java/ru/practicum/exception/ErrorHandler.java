@@ -66,7 +66,7 @@ public class ErrorHandler {
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleBadRequestException(ConditionsNotMetException e) {
+    public ApiError handleBadRequestException(BadRequestException e) {
         return baseError(HttpStatus.BAD_REQUEST,
                 "Incorrectly made request.",
                 e.getMessage());
