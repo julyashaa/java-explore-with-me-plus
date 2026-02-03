@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStatsDto;
-import ru.practicum.server.exception.BadRequestException;
 import ru.practicum.server.mapper.StatMapper;
 import ru.practicum.server.model.EndpointHit;
 import ru.practicum.server.repository.StatRepository;
@@ -33,9 +32,6 @@ public class StatService {
         LocalDateTime startTime = LocalDateTime.parse(start, FORMATTER);
         LocalDateTime endTime = LocalDateTime.parse(end, FORMATTER);
 
-        if (startTime.isAfter(endTime)) {
-            throw new BadRequestException("Конец интервала не может быть раньше начала");
-        }
         if (unique) {
             return statRepository.getUniqueStats(startTime, endTime, uris);
         } else {
@@ -43,7 +39,7 @@ public class StatService {
         }
     }
 
-    public List<ViewStatsDto> getUniqueAllStats(List<String> uris) {
-        return statRepository.getUniqueAllStats(uris);
+    public List<ViewStatsDto> getAllStats(List<String> uris, Boolean unique) {
+        return statRepository.getUniqueAllStats(uris, unique);
     }
 }
