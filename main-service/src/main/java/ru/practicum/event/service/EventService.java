@@ -17,8 +17,9 @@ import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConflictException;
-import ru.practicum.exception.ForbiddenException;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.request.model.RequestStatus;
+import ru.practicum.request.service.RequestService;
 import ru.practicum.user.dto.UserDto;
 import ru.practicum.user.dto.UserShortDto;
 import ru.practicum.user.service.UserService;
@@ -41,6 +42,7 @@ public class EventService {
     private final EventRepository eventRepository;
     private final UserService userService;
     private final CategoryService categoryService;
+    private final RequestService requestService;
     private final ClientForStat client = new ClientForStat();
 
     @Transactional
@@ -54,12 +56,19 @@ public class EventService {
         event.setInitiator(userId);
         event.setState(EventState.PENDING);
         event.setViews(0L);
-        event.setPaid(false);
-        event.setParticipantLimit(0);
-        event.setRequestModeration(true);
-        Event eventSave = eventRepository.save(event);
-        log.info("Успешно создано событие с ID={}", eventSave);
-        return fillingFieldsInEventFullDto(event);
+        if (event.getPaid() == null) {
+            event.setPaid(false);
+        }
+        if (event.getParticipantLimit() == null) {
+            event.setParticipantLimit(0);
+        }
+        if (event.getRequestModeration() == null) {
+            event.setRequestModeration(true);
+        }
+        eventRepository.save(event);
+        EventFullDto eventFullDto = fillingFieldsInEventFullDto(event);
+        log.info("Успешно создано событие с ID={}", eventFullDto);
+        return eventFullDto;
     }
 
     public List<EventShortDto> getEventsForUser(Long initiatorId, Integer from, Integer size) {
@@ -90,7 +99,7 @@ public class EventService {
 
         // Проверка, что пользователь — инициатор
         if (!event.getInitiator().equals(userId)) {
-            throw new ForbiddenException("Вы не являетесь инициатором этого события");
+            throw new ConflictException("Вы не являетесь инициатором этого события");
         }
 
         // Проверка статуса события
@@ -149,8 +158,9 @@ public class EventService {
         }
 
         eventRepository.save(event);
-        log.info("Событие {} успешно сохранено и обновлено", event);
-        return fillingFieldsInEventFullDto(event);
+        EventFullDto eventFullDto = fillingFieldsInEventFullDto(event);
+        log.info("Событие {} успешно сохранено и обновлено", eventFullDto);
+        return eventFullDto;
     }
 
     public List<EventFullDto> getEvents(
@@ -242,7 +252,7 @@ public class EventService {
                     event.setState(EventState.PUBLISHED);
                     event.setPublishedOn(now);
                     break;
-                case "CANCEL_EVENT":
+                case "REJECT_EVENT":
                     validateCancel(event);
                     event.setState(EventState.CANCELED);
                     break;
@@ -307,9 +317,10 @@ public class EventService {
             event.setRequestModeration(request.getRequestModeration());
         }
         eventRepository.save(event);
-        log.info("Событие успешно сохранено и обновлено {}", event);
+        EventFullDto eventFullDto = fillingFieldsInEventFullDto(event);
+        log.info("Событие успешно сохранено и обновлено {}", eventFullDto);
 
-        return fillingFieldsInEventFullDto(event);
+        return eventFullDto;
     }
 
     @Transactional
@@ -332,11 +343,11 @@ public class EventService {
 
     private void validatePublish(Event event, UpdateEventAdminRequest request, LocalDateTime now) {
         if (EventState.PUBLISHED.equals(event.getState())) {
-            throw new ForbiddenException("Невозможно опубликовать — событие уже опубликовано");
+            throw new ConflictException("Невозможно опубликовать — событие уже опубликовано");
         }
 
         if (!EventState.PENDING.equals(event.getState())) {
-            throw new ForbiddenException("Можно публиковать только события в состоянии ожидания");
+            throw new ConflictException("Можно публиковать только события в состоянии ожидания");
         }
 
         // Проверка, что дата события не раньше, чем через 1 час от текущего времени
@@ -348,22 +359,22 @@ public class EventService {
                 throw new IllegalArgumentException("Некорректный формат даты");
             }
             if (eventDate.isBefore(now.plusHours(1))) {
-                throw new ForbiddenException("Дата мероприятия должна быть не раньше, чем через час от текущего времени");
+                throw new ConflictException("Дата мероприятия должна быть не раньше, чем через час от текущего времени");
             }
         } else if (event.getEventDate() != null) {
             // если дата не передана в запрос, берем старую, но проверять всё равно
             if (event.getEventDate().isBefore(now.plusHours(1))) {
-                throw new ForbiddenException("Дата мероприятия должна быть не раньше, чем через час от текущего времени");
+                throw new ConflictException("Дата мероприятия должна быть не раньше, чем через час от текущего времени");
             }
         }
     }
 
     private void validateCancel(Event event) {
         if (EventState.PUBLISHED.equals(event.getState())) {
-            throw new ForbiddenException("Невозможно отменить опубликованное событие");
+            throw new ConflictException("Невозможно отменить опубликованное событие");
         }
         if (EventState.CANCELED.equals(event.getState())) {
-            throw new ForbiddenException("Событие уже отменено");
+            throw new ConflictException("Событие уже отменено");
         }
     }
 
@@ -408,6 +419,8 @@ public class EventService {
         EventFullDto eventDto = eventMapper.toFullDto(event);
         eventDto.setInitiator(new UserShortDto(users.getId(), users.getName()));
         eventDto.setCategory(categoryDto);
+        Integer confirmRequests = requestService.getEventParticipantsWithConfirm(event.getInitiator(), event.getId());
+        eventDto.setConfirmedRequests(confirmRequests != null ? confirmRequests : 0);
         return eventDto;
     }
 
@@ -423,6 +436,13 @@ public class EventService {
 
         List<EventFullDto> eventFullDtos = eventMapper.toFullDtos(events);
 
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        HashMap<Long, Integer> participantLimitMapConfirm = requestService.getAllEventParticipiants(eventIds,
+                RequestStatus.CONFIRMED);
+
         for (int i = 0; i < events.size(); i++) {
             Event event = events.get(i);
             EventFullDto dto = eventFullDtos.get(i);
@@ -433,6 +453,8 @@ public class EventService {
             if (event.getInitiator() != null) {
                 dto.setInitiator(userMap.get(event.getInitiator()));
             }
+            Integer count = participantLimitMapConfirm.get(event.getId());
+            dto.setConfirmedRequests(count != null ? count : 0);
         }
 
         return eventFullDtos;
@@ -450,6 +472,13 @@ public class EventService {
 
         List<EventShortDto> eventShortDtos = eventMapper.toShortDtos(events);
 
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        HashMap<Long, Integer> participantLimitMapConfirm = requestService.getAllEventParticipiants(eventIds,
+                RequestStatus.CONFIRMED);
+
         for (int i = 0; i < events.size(); i++) {
             Event event = events.get(i);
             EventShortDto dto = eventShortDtos.get(i);
@@ -460,6 +489,7 @@ public class EventService {
             if (event.getInitiator() != null) {
                 dto.setInitiator(userMap.get(event.getInitiator()));
             }
+            dto.setConfirmedRequests(participantLimitMapConfirm.get(event.getId()));
         }
 
         return eventShortDtos;

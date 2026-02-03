@@ -12,15 +12,15 @@ import java.util.List;
 
 @NoArgsConstructor
 public class ClientForStat {
+    private static final String BASE_URL = "http://localhost:9090/";
+    private static final String URL_HIT = BASE_URL + "hit";
+    private static final String URL_STATS = BASE_URL + "stats/uniq";
     RestTemplate restTemplate = new RestTemplate();
-    private final static String BASE_URL = "http://localhost:9090/";
-    private final static String URL_HIT = BASE_URL + "hit";
-    private final static String URL_STATS = BASE_URL + "stats/uniq";
 
-    public void hit(String ip, String Uri) {
+    public void hit(String ip, String uri) {
         EndpointHitMain hitDto = new EndpointHitMain();
         hitDto.setApp("main-service");
-        hitDto.setUri(Uri);
+        hitDto.setUri(uri);
         hitDto.setIp(ip);
         hitDto.setTimestamp(LocalDateTime.now());
         restTemplate.postForObject(URL_HIT, hitDto, Void.class);
@@ -41,9 +41,9 @@ public class ClientForStat {
 
         String urlWithParams = builder.toUriString();
         ResponseEntity<List<ViewStatsDtoMain>> responseEntity = restTemplate.exchange(
-            urlWithParams,
-            HttpMethod.GET,
-            null,
+                urlWithParams,
+                HttpMethod.GET,
+                null,
                 new ParameterizedTypeReference<>() {
                 }
         );
