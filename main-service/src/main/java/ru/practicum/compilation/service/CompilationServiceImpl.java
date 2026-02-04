@@ -99,7 +99,7 @@ public class CompilationServiceImpl implements CompilationService {
 
         Compilation compilation = getCompilationOrElseThrow(compId);
 
-        String title = updateRequest.getTitle();
+        String title = compilation.getTitle();
         if (title != null && !title.isEmpty()) {
             compilation.setTitle(updateRequest.getTitle());
         }
