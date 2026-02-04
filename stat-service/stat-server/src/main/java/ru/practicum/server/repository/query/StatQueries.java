@@ -22,12 +22,11 @@ public enum StatQueries {
             ORDER BY COUNT(DISTINCT h.ip) DESC
             """;
 
-    public static final String ALL_STATS = """
-            SELECT new ru.practicum.dto.ViewStatsDto(h.app, h.uri,
-                CASE WHEN :unique = true THEN COUNT(h.ip) ELSE COUNT(DISTINCT h.ip) END AS unique)
+    public static final String UNIQUE_ALL_STATS = """
+            SELECT new ru.practicum.dto.ViewStatsDto(h.app, h.uri, COUNT(DISTINCT h.ip))
             FROM EndpointHit h
             WHERE :uris IS NULL OR h.uri IN :uris
             GROUP BY h.app, h.uri
-            ORDER BY COUNT(h.ip) DESC
+            ORDER BY COUNT(DISTINCT h.ip) DESC
             """;
 }

@@ -55,24 +55,4 @@ public class RestStatClient implements StatClient {
 
         return response.getBody() != null ? response.getBody() : Collections.emptyList();
     }
-
-    @Override
-    public List<ViewStatsDto> getAllStats(List<String> uris, Boolean unique) {
-        ResponseEntity<List<ViewStatsDto>> response = restClient.get()
-                .uri(uriBuilder -> {
-                    UriBuilder builder = uriBuilder.path("/stats/all");
-
-                    if (uris != null && !uris.isEmpty()) {
-                        builder.queryParam("uris", uris);
-                    }
-                    if (unique != null) {
-                        builder.queryParam("unique", unique);
-                    }
-                    return builder.build();
-                })
-                .retrieve()
-                .toEntity(new ParameterizedTypeReference<>() {});
-
-        return response.getBody() != null ? response.getBody() : Collections.emptyList();
-    }
 }

@@ -4,12 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.client.StatClient;
-import ru.practicum.dto.EndpointHitDto;
+import ru.practicum.client.ClientForStat;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.service.EventService;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Validated
@@ -18,17 +16,12 @@ import java.util.List;
 @RequestMapping("/events")
 public class PublicEventController {
     private final EventService eventService;
-    private final StatClient statClient;
-    private EndpointHitDto endpointHitDto = EndpointHitDto.builder()
-            .app("main-service").build();
+    private final ClientForStat client = new ClientForStat();
 
     @GetMapping("/{id}")
     public EventFullDto getEventById(@PathVariable Long id, HttpServletRequest request) {
         EventFullDto eventFullDto = eventService.getPublishedEventById(id);
-        endpointHitDto.setIp(request.getRemoteAddr());
-        endpointHitDto.setUri("/events/" + id);
-        endpointHitDto.setTimestamp(LocalDateTime.now());
-        statClient.hit(endpointHitDto);
+        client.hit(request.getRemoteAddr(), "/events/" + id);
         return eventFullDto;
     }
 
@@ -45,10 +38,7 @@ public class PublicEventController {
     ) {
         List<EventFullDto> eventFullDtos = eventService.getEvents(users, states, categories, rangeStart, rangeEnd,
                 from, size);
-        endpointHitDto.setIp(request.getRemoteAddr());
-        endpointHitDto.setUri("/events");
-        endpointHitDto.setTimestamp(LocalDateTime.now());
-        statClient.hit(endpointHitDto);
+        client.hit(request.getRemoteAddr());
         return eventFullDtos;
     }
 }
