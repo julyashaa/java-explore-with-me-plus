@@ -33,9 +33,9 @@ public class StatController {
         return statService.getStats(start, end, uris, unique);
     }
 
-    @GetMapping("/stats/uniq")
-    public List<ViewStatsDto> getUniqStats(@RequestParam(required = false) List<String> uris) {
+    @GetMapping("/stats/all")
+    public List<ViewStatsDto> getUniqStats(@RequestParam(required = false) List<String> uris, Boolean unique) {
         log.info("Запрос на получение статистики: uris={}", uris);
-        return statService.getUniqueAllStats(uris);
+        return statService.getAllStats(uris, unique);
     }
 }
