@@ -43,7 +43,7 @@ public class StatService {
         }
     }
 
-    public List<ViewStatsDto> getUniqueAllStats(List<String> uris) {
-        return statRepository.getUniqueAllStats(uris);
+    public List<ViewStatsDto> getAllStats(List<String> uris, Boolean unique) {
+        return statRepository.getUniqueAllStats(uris, unique);
     }
 }

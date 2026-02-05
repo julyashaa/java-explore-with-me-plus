@@ -2,6 +2,7 @@ package ru.practicum.event.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.ClientForStat;
@@ -10,6 +11,7 @@ import ru.practicum.event.service.EventService;
 
 import java.util.List;
 
+@Slf4j
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -21,7 +23,11 @@ public class PublicEventController {
     @GetMapping("/{id}")
     public EventFullDto getEventById(@PathVariable Long id, HttpServletRequest request) {
         EventFullDto eventFullDto = eventService.getPublishedEventById(id);
-        client.hit(request.getRemoteAddr(), "/events/" + id);
+        try {
+            client.hit(request.getRemoteAddr(), "/events/" + id);
+        } catch (Exception e) {
+            log.error("Ошибка сохранения статистики", e);
+        }
         return eventFullDto;
     }
 
@@ -38,7 +44,11 @@ public class PublicEventController {
     ) {
         List<EventFullDto> eventFullDtos = eventService.getEvents(users, states, categories, rangeStart, rangeEnd,
                 from, size);
-        client.hit(request.getRemoteAddr());
+        try {
+            client.hit(request.getRemoteAddr());
+        } catch (Exception e) {
+                log.error("Ошибка сохранения статистики", e);
+        }
         return eventFullDtos;
     }
 }

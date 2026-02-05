@@ -9,7 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.category.service.CategoryService;
 import ru.practicum.client.ClientForStat;
-import ru.practicum.client.ViewStatsDtoMain;
+import ru.practicum.client.RestStatClient;
+import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.enums.EventState;
 import ru.practicum.event.mapper.EventMapper;
@@ -44,6 +45,7 @@ public class EventService {
     private final CategoryService categoryService;
     private final RequestService requestService;
     private final ClientForStat client = new ClientForStat();
+    private final RestStatClient restStatClient;
 
     @Transactional
     public EventFullDto create(NewEventDto dto, long userId) {
@@ -333,9 +335,13 @@ public class EventService {
         Event event = optionalEvent.get();
         List<String> uris = new ArrayList<>(Collections.emptyList());
         uris.add("/events/" + event.getId());
-        List<ViewStatsDtoMain> viewStatsDtoMains = client.getStats(uris);
-        if (!viewStatsDtoMains.isEmpty()) {
-            event.setViews(viewStatsDtoMains.getFirst().getHits());
+        try {
+            List<ViewStatsDto> viewStatsDtoMains = restStatClient.getAllStats(uris, false);
+            if (!viewStatsDtoMains.isEmpty()) {
+                event.setViews(viewStatsDtoMains.getFirst().getHits());
+            }
+        } catch (Exception e) {
+            log.error("Ошбка запуска сервиса статистики", e);
         }
         log.info("Найдено событие: {}", event);
         return fillingFieldsInEventFullDto(event);
