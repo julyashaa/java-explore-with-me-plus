@@ -3,16 +3,18 @@ package ru.practicum.client.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.practicum.client.RestStatClient;
+import org.springframework.web.client.RestClient;
 
 @Configuration
 public class StatClientConfig {
 
-    @Value("${stats-server.url:http://localhost:9090}")
-    private String serverUrl;
+    @Value("${client.url}")
+    private String statServerUrl;
 
     @Bean
-    public RestStatClient statClient() {
-        return new RestStatClient(serverUrl);
+    public RestClient restClient() {
+        return RestClient.builder()
+                .baseUrl(statServerUrl)
+                .build();
     }
 }

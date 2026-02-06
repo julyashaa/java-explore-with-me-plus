@@ -1,7 +1,9 @@
 package ru.practicum.client;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriBuilder;
 import ru.practicum.dto.EndpointHitDto;
@@ -14,13 +16,13 @@ import java.util.List;
 
 import static ru.practicum.constants.DatePatternConstant.DATE_TIME_PATTERN;
 
+@Component
+@RequiredArgsConstructor
 public class RestStatClient implements StatClient {
+
     private final RestClient restClient;
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
 
-    public RestStatClient(String baseUrl) {
-        this.restClient = RestClient.create(baseUrl);
-    }
 
     @Override
     public void hit(EndpointHitDto endpointHitDto) {

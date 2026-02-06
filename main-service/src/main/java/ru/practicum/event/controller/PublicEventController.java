@@ -6,9 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.ClientForStat;
+import ru.practicum.client.StatClient;
+import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.service.EventService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -19,15 +22,12 @@ import java.util.List;
 public class PublicEventController {
     private final EventService eventService;
     private final ClientForStat client = new ClientForStat();
+    private final StatClient statClient;
 
     @GetMapping("/{id}")
     public EventFullDto getEventById(@PathVariable Long id, HttpServletRequest request) {
+        sendStats(request);
         EventFullDto eventFullDto = eventService.getPublishedEventById(id);
-        try {
-            client.hit(request.getRemoteAddr(), "/events/" + id);
-        } catch (Exception e) {
-            log.error("Ошибка сохранения статистики", e);
-        }
         return eventFullDto;
     }
 
@@ -50,5 +50,19 @@ public class PublicEventController {
                 log.error("Ошибка сохранения статистики", e);
         }
         return eventFullDtos;
+    }
+
+    private void sendStats(HttpServletRequest request) {
+        try {
+            EndpointHitDto hitDto = EndpointHitDto.builder()
+                    .app("main-service")
+                    .uri(request.getRequestURI())
+                    .ip(request.getRemoteAddr())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            statClient.hit(hitDto);
+        } catch (Exception e) {
+            log.error("Ошибка при отправке статистики: {}", e.getMessage());
+        }
     }
 }
