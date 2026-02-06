@@ -2,6 +2,7 @@ package ru.practicum.event.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.StatClient;
@@ -12,6 +13,7 @@ import ru.practicum.event.service.EventService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -19,16 +21,11 @@ import java.util.List;
 public class PublicEventController {
     private final EventService eventService;
     private final StatClient statClient;
-    private EndpointHitDto endpointHitDto = EndpointHitDto.builder()
-            .app("main-service").build();
 
     @GetMapping("/{id}")
     public EventFullDto getEventById(@PathVariable Long id, HttpServletRequest request) {
+        sendStats(request);
         EventFullDto eventFullDto = eventService.getPublishedEventById(id);
-        endpointHitDto.setIp(request.getRemoteAddr());
-        endpointHitDto.setUri("/events/" + id);
-        endpointHitDto.setTimestamp(LocalDateTime.now());
-        statClient.hit(endpointHitDto);
         return eventFullDto;
     }
 
@@ -43,12 +40,23 @@ public class PublicEventController {
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request
     ) {
+        sendStats(request);
         List<EventFullDto> eventFullDtos = eventService.getEvents(users, states, categories, rangeStart, rangeEnd,
                 from, size);
-        endpointHitDto.setIp(request.getRemoteAddr());
-        endpointHitDto.setUri("/events");
-        endpointHitDto.setTimestamp(LocalDateTime.now());
-        statClient.hit(endpointHitDto);
         return eventFullDtos;
+    }
+
+    private void sendStats(HttpServletRequest request) {
+        try {
+            EndpointHitDto hitDto = EndpointHitDto.builder()
+                    .app("main-service")
+                    .uri(request.getRequestURI())
+                    .ip(request.getRemoteAddr())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            statClient.hit(hitDto);
+        } catch (Exception e) {
+            log.error("Ошибка при отправке статистики: {}", e.getMessage());
+        }
     }
 }

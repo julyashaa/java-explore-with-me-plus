@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStatsDto;
-import ru.practicum.exception.BadRequestException;
+import ru.practicum.server.exception.BadRequestException;
 import ru.practicum.server.mapper.StatMapper;
 import ru.practicum.server.model.EndpointHit;
 import ru.practicum.server.repository.StatRepository;
