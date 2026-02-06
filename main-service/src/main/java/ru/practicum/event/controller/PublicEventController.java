@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.client.ClientForStat;
 import ru.practicum.client.StatClient;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.event.dto.EventFullDto;
@@ -21,7 +20,6 @@ import java.util.List;
 @RequestMapping("/events")
 public class PublicEventController {
     private final EventService eventService;
-    private final ClientForStat client = new ClientForStat();
     private final StatClient statClient;
 
     @GetMapping("/{id}")
@@ -42,13 +40,9 @@ public class PublicEventController {
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request
     ) {
+        sendStats(request);
         List<EventFullDto> eventFullDtos = eventService.getEvents(users, states, categories, rangeStart, rangeEnd,
                 from, size);
-        try {
-            client.hit(request.getRemoteAddr());
-        } catch (Exception e) {
-                log.error("Ошибка сохранения статистики", e);
-        }
         return eventFullDtos;
     }
 
