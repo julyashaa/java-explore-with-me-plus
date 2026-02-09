@@ -16,26 +16,26 @@ import ru.practicum.event.model.Location;
 public class UpdateEventUserRequest {
 
     @Size(min = 20, max = 2000)
-    private String annotation; // Новая аннотация
+    private String annotation;
 
-    private Long category; // Новая категория (ID)
+    private Long category;
 
     @Size(min = 20, max = 7000)
-    private String description; // Новое описание
+    private String description;
 
-    private String eventDate; // Новые дата и время события в формате "yyyy-MM-dd HH:mm:ss"
+    private String eventDate;
 
-    private Location location; // Место проведения
+    private Location location;
 
-    private Boolean paid; // Новое значение флага платности
+    private Boolean paid;
 
     @Min(0)
-    private Integer participantLimit; // Новый лимит участников
+    private Integer participantLimit;
 
-    private Boolean requestModeration; // Нужна ли пре-модерация заявок
+    private Boolean requestModeration;
 
-    private EventStateActionEnum stateAction; // Изменение статуса события
+    private EventStateActionEnum stateAction;
 
     @Size(min = 3, max = 120)
-    private String title; // Новый заголовок
+    private String title;
 }

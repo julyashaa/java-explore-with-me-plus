@@ -16,28 +16,28 @@ import ru.practicum.user.dto.UserShortDto;
 @Builder
 public class EventShortDto {
 
-    private Long id; // Идентификатор
+    private Long id;
 
     @NotBlank
-    private String title; // Заголовок
+    private String title;
 
     @NotBlank
-    private String annotation; // Краткое описание
+    private String annotation;
 
     @NotNull
     @Valid
-    private CategoryDto category; // Категория
+    private CategoryDto category;
 
-    private Integer confirmedRequests; // Количество одобренных заявок
+    private Integer confirmedRequests;
 
     @NotBlank
-    private String eventDate; // Дата события в формате "yyyy-MM-dd HH:mm:ss"
+    private String eventDate;
 
     @NotNull
     @Valid
-    private UserShortDto initiator; // Пользователь
+    private UserShortDto initiator;
 
-    private Boolean paid; // Нужно ли платить
+    private Boolean paid;
 
-    private Long views; // Количество просмотров
+    private Long views;
 }

@@ -41,7 +41,7 @@ public class Event {
 
     @NotNull
     @Valid
-    private Long initiator; // Пользователь
+    private Long initiator;
 
     @NotBlank
     @Size(max = 7000, min = 20)

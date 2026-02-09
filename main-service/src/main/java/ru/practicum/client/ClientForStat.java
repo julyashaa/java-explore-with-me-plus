@@ -1,21 +1,24 @@
 package ru.practicum.client;
 
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@NoArgsConstructor
+@Component
+@RequiredArgsConstructor
 public class ClientForStat {
     private static final String BASE_URL = "http://localhost:9090/";
     private static final String URL_HIT = BASE_URL + "hit";
     private static final String URL_STATS = BASE_URL + "stats/uniq";
-    RestTemplate restTemplate = new RestTemplate();
+
+    private final RestTemplate restTemplate;
 
     public void hit(String ip, String uri) {
         EndpointHitMain hitDto = new EndpointHitMain();
