@@ -24,19 +24,19 @@ import static ru.practicum.constants.DatePatternConstant.DATE_TIME_PATTERN;
 @Builder
 public class EventFullDto {
 
-    private Long id; // Идентификатор
+    private Long id;
 
     @NotBlank
-    private String title; // Заголовок
+    private String title;
 
     @NotBlank
-    private String annotation; // Краткое описание
+    private String annotation;
 
     @NotNull
     @Valid
-    private CategoryDto category; // Категория
+    private CategoryDto category;
 
-    private Boolean paid; // Нужно ли оплачивать
+    private Boolean paid;
 
     @NotBlank
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
@@ -44,31 +44,31 @@ public class EventFullDto {
 
     @NotNull
     @Valid
-    private UserShortDto initiator; // Пользователь
+    private UserShortDto initiator;
 
     @NotBlank
-    private String description; // Полное описание
+    private String description;
 
     @Min(0)
-    private Integer participantLimit; // Ограничение участников (0 = нет ограничения)
+    private Integer participantLimit;
 
-    private EventState state; // Статус события
+    private EventState state;
 
     @NotBlank
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
-    private LocalDateTime createdOn; // Дата и время создания
+    private LocalDateTime createdOn;
 
     @NotNull
     @Valid
-    private Location location; // Место проведения
+    private Location location;
 
-    private Integer confirmedRequests; // Количество одобренных заявок
+    private Integer confirmedRequests;
 
     @NotBlank
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
-    private LocalDateTime publishedOn; // Дата публикации
+    private LocalDateTime publishedOn;
 
-    private Long views; // Количество просмотров
+    private Long views;
 
     private Boolean requestModeration;
 }

@@ -44,7 +44,7 @@ public class EventService {
     private final UserService userService;
     private final CategoryService categoryService;
     private final RequestService requestService;
-    private final ClientForStat client = new ClientForStat();
+    private final ClientForStat client;
     private final RestStatClient restStatClient;
 
     @Transactional
