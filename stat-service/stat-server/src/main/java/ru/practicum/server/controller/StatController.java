@@ -32,4 +32,10 @@ public class StatController {
         log.info("Запрос на получение статистики: start={}, end={}, uris={}, unique={}", start, end, uris, unique);
         return statService.getStats(start, end, uris, unique);
     }
+
+    @GetMapping("/stats/all")
+    public List<ViewStatsDto> getUniqStats(@RequestParam(required = false) List<String> uris, Boolean unique) {
+        log.info("Запрос на получение статистики: uris={}", uris);
+        return statService.getAllStats(uris, unique);
+    }
 }
