@@ -13,4 +13,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @EntityGraph(attributePaths = {"author", "event"})
     List<Comment> findByAuthorId(Long userId, Pageable pageable);
+
+    @EntityGraph(attributePaths = "event")
+    List<Comment> findByEventId(Long eventId, Pageable pageable);
 }

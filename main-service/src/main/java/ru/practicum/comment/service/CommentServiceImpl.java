@@ -6,10 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.practicum.comment.dto.CommentDto;
-import ru.practicum.comment.dto.GetCommentsDtoParams;
-import ru.practicum.comment.dto.NewCommentDto;
-import ru.practicum.comment.dto.UpdateCommentDto;
+import ru.practicum.comment.dto.*;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.model.Comment;
 import ru.practicum.comment.repository.CommentRepository;
@@ -58,6 +55,15 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    public ShortCommentDto getComment(Long commentId) {
+        log.info("Получение комментария с id: {}", commentId);
+
+        Comment comment = getCommentOrElseThrow(commentId);
+
+        return commentMapper.toShortDto(comment);
+    }
+
+    @Override
     public CommentDto getComment(Long userId, Long commentId) {
         log.info("Получение комментария с id: {}", commentId);
 
@@ -82,6 +88,20 @@ public class CommentServiceImpl implements CommentService {
         List<Comment> result = commentRepository.findByAuthorId(userId, page);
 
         return mapToListCommentDto(result);
+    }
+
+    @Override
+    public List<ShortCommentDto> getEventComments(Long eventId, GetCommentsDtoParams params) {
+        log.info("Получение комментариев ивента с параметрами: {}", params);
+
+        Pageable page = PageRequest.of(
+                params.getFrom() / params.getSize(),
+                params.getSize(),
+                Sort.by("createdOn").descending());
+
+        List<Comment> result = commentRepository.findByEventId(eventId, page);
+
+        return  mapToListShortCommentDto(result);
     }
 
     @Override
@@ -131,6 +151,16 @@ public class CommentServiceImpl implements CommentService {
                             return dto;
                         }
                 )
+                .toList();
+    }
+
+    private List<ShortCommentDto> mapToListShortCommentDto(List<Comment> comments) {
+        if (comments == null || comments.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return comments.stream()
+                .map(commentMapper::toShortDto)
                 .toList();
     }
 
