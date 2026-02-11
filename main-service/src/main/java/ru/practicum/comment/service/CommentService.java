@@ -6,4 +6,6 @@ import ru.practicum.comment.dto.NewCommentDto;
 public interface CommentService {
 
     CommentDto create(Long userId, NewCommentDto newCommentDto);
+
+    CommentDto getComment(Long userId, Long commentId);
 }

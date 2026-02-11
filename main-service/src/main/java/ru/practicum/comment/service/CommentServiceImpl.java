@@ -16,6 +16,7 @@ import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -49,6 +50,19 @@ public class CommentServiceImpl implements CommentService {
         return result;
     }
 
+    @Override
+    public CommentDto getComment(Long userId, Long commentId) {
+        log.info("Получение комментария с id: {}", commentId);
+
+        User user = getUserOrElseThrow(userId);
+        Comment comment = getCommentOrElseThrow(commentId);
+
+        CommentDto result = commentMapper.toDto(comment);
+        result.setAuthor(userMapper.toShortDto(user));
+
+        return result;
+    }
+
     private User getUserOrElseThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
@@ -58,4 +72,10 @@ public class CommentServiceImpl implements CommentService {
         return eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
     }
+
+    private Comment getCommentOrElseThrow(Long commentId) {
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Comment with id " + commentId + " not found"));
+    }
+
 }

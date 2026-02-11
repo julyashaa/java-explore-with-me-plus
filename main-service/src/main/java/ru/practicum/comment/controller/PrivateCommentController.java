@@ -22,4 +22,11 @@ public class PrivateCommentController {
         log.info("Запрос на создание комментария: POST /users/{}/comments", userId);
         return commentService.create(userId, newCommentDto);
     }
+
+    @GetMapping("/{commentId}")
+    public CommentDto getComment(@PathVariable Long userId,
+                                 @PathVariable Long commentId) {
+        log.info("Запрос на получение комментария: Get /users/{}/comments/{}", userId, commentId);
+        return commentService.getComment(userId, commentId);
+    }
 }
