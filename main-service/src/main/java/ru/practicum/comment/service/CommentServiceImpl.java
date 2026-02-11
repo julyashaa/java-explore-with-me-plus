@@ -9,11 +9,13 @@ import org.springframework.stereotype.Service;
 import ru.practicum.comment.dto.CommentDto;
 import ru.practicum.comment.dto.GetCommentsDtoParams;
 import ru.practicum.comment.dto.NewCommentDto;
+import ru.practicum.comment.dto.UpdateCommentDto;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.model.Comment;
 import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
+import ru.practicum.exception.ForbiddenException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.user.mapper.UserMapper;
 import ru.practicum.user.model.User;
@@ -35,7 +37,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
 
     @Override
-    public CommentDto create(Long userId, NewCommentDto newCommentDto) {
+    public CommentDto createComment(Long userId, NewCommentDto newCommentDto) {
         log.info("Создание нового комментария: {}", newCommentDto);
 
         User user = getUserOrElseThrow(userId);
@@ -82,6 +84,28 @@ public class CommentServiceImpl implements CommentService {
         return mapToListCommentDto(result);
     }
 
+    @Override
+    public CommentDto updateComment(Long userId, Long commentId, UpdateCommentDto updateCommentDto) {
+        log.info("Обновление комментария с id: {}", commentId);
+
+        User user = getUserOrElseThrow(userId);
+        Comment comment = getCommentOrElseThrow(commentId);
+
+        throwIfUserNotAuthorComment(userId, comment);
+
+        String text = updateCommentDto.getText();
+        if (text != null) {
+            comment.setText(text);
+            comment.setEditedOn(LocalDateTime.now());
+        }
+        Comment savedComment = commentRepository.save(comment);
+        log.info("Комментарий обновлен {}", savedComment);
+
+        CommentDto result = commentMapper.toDto(savedComment);
+        result.setAuthor(userMapper.toShortDto(user));
+        return result;
+    }
+
     private List<CommentDto> mapToListCommentDto(List<Comment> comments) {
         if (comments == null || comments.isEmpty()) {
             return Collections.emptyList();
@@ -110,5 +134,11 @@ public class CommentServiceImpl implements CommentService {
     private Comment getCommentOrElseThrow(Long commentId) {
         return commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Comment with id " + commentId + " not found"));
+    }
+
+    private void throwIfUserNotAuthorComment(Long userId, Comment comment) {
+        if(!comment.getAuthor().getId().equals(userId)) {
+            throw new ForbiddenException("User with id " + userId + " not author comment");
+        }
     }
 }

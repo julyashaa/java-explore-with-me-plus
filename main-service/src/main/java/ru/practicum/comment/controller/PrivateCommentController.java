@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.comment.dto.CommentDto;
 import ru.practicum.comment.dto.GetCommentsDtoParams;
 import ru.practicum.comment.dto.NewCommentDto;
+import ru.practicum.comment.dto.UpdateCommentDto;
 import ru.practicum.comment.service.CommentService;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public class PrivateCommentController {
     public CommentDto createComment(@PathVariable Long userId,
                                     @RequestBody @Valid NewCommentDto newCommentDto) {
         log.info("Запрос на создание комментария: POST /users/{}/comments", userId);
-        return commentService.create(userId, newCommentDto);
+        return commentService.createComment(userId, newCommentDto);
     }
 
     @GetMapping("/{commentId}")
@@ -41,5 +42,13 @@ public class PrivateCommentController {
         log.info("Запрос на получение комментариев пользователя: GET /users/{}/comments?from={}&size={}",
                 userId, params.getFrom(), params.getSize());
         return commentService.getUserComments(userId, params);
+    }
+
+    @PatchMapping("/{commentId}")
+    public CommentDto updateComment(@PathVariable Long userId,
+                                    @PathVariable Long commentId,
+                                    @RequestBody @Valid UpdateCommentDto updateCommentDto) {
+        log.info("Запрос на обновление комментария : PATCH /users/{}/comments/{}", userId, commentId);
+        return commentService.updateComment(userId, commentId, updateCommentDto);
     }
 }
