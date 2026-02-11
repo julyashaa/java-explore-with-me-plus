@@ -32,13 +32,13 @@ public class AdminCommentController {
     public CommentDto updateComment(@PathVariable Long commentId,
                                     @RequestBody @Valid UpdateCommentDto updateCommentDto) {
         log.info("Запрос на обновление комментария админом: PATCH /admin/comments/{}", commentId);
-        return commentService.updateComment(commentId, updateCommentDto);
+        return commentService.updateCommentByAdmin(commentId, updateCommentDto);
     }
 
     @DeleteMapping("/{commentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(@PathVariable Long commentId) {
         log.info("Запрос на удаление комментария админом: DELETE /admin/comments/{}", commentId);
-        commentService.deleteComment(commentId);
+        commentService.deleteCommentByAdmin(commentId);
     }
 }

@@ -66,7 +66,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDto getComment(Long userId, Long commentId) {
+    public CommentDto getCommentByUser(Long userId, Long commentId) {
         log.info("Получение комментария с id: {}", commentId);
 
         getUserOrElseThrow(userId);
@@ -121,7 +121,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDto updateComment(Long commentId, UpdateCommentDto updateCommentDto) {
+    public CommentDto updateCommentByAdmin(Long commentId, UpdateCommentDto updateCommentDto) {
         log.info("Обновление комментария с id: {}", commentId);
 
         Comment comment = getCommentOrElseThrow(commentId);
@@ -140,7 +140,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDto updateComment(Long userId, Long commentId, UpdateCommentDto updateCommentDto) {
+    public CommentDto updateCommentByUser(Long userId, Long commentId, UpdateCommentDto updateCommentDto) {
         log.info("Обновление комментария с id: {}", commentId);
 
         User user = getUserOrElseThrow(userId);
@@ -162,7 +162,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public void deleteComment(Long commentId) {
+    public void deleteCommentByAdmin(Long commentId) {
         log.info("Удаление комментария с id: {}", commentId);
 
         Comment comment = getCommentOrElseThrow(commentId);
@@ -173,7 +173,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public void deleteComment(Long userId, Long commentId) {
+    public void deleteCommentByUser(Long userId, Long commentId) {
         log.info("Удаление комментария с id: {}", commentId);
 
         Comment comment = getCommentOrElseThrow(commentId);

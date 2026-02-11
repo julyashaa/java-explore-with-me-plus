@@ -29,7 +29,7 @@ public class PublicCommentController {
 
     @GetMapping("/events/{eventId}/comments")
     public List<ShortCommentDto> getEventComments(@PathVariable Long eventId,
-                                             @Valid GetCommentsDtoParams params) {
+                                                  @Valid GetCommentsDtoParams params) {
         log.info("Запрос на получение комментариев ивента: GET /events/{}/comments?from={}&size={}",
                 eventId, params.getFrom(), params.getSize());
         return commentService.getEventComments(eventId, params);

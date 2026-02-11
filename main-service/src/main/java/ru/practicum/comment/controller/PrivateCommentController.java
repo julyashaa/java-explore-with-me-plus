@@ -35,7 +35,7 @@ public class PrivateCommentController {
     public CommentDto getComment(@PathVariable Long userId,
                                  @PathVariable Long commentId) {
         log.info("Запрос на получение комментария: GET /users/{}/comments/{}", userId, commentId);
-        return commentService.getComment(userId, commentId);
+        return commentService.getCommentByUser(userId, commentId);
     }
 
     @GetMapping
@@ -51,7 +51,7 @@ public class PrivateCommentController {
                                     @PathVariable Long commentId,
                                     @RequestBody @Valid UpdateCommentDto updateCommentDto) {
         log.info("Запрос на обновление комментария : PATCH /users/{}/comments/{}", userId, commentId);
-        return commentService.updateComment(userId, commentId, updateCommentDto);
+        return commentService.updateCommentByUser(userId, commentId, updateCommentDto);
     }
 
     @DeleteMapping("/{commentId}")
@@ -59,6 +59,6 @@ public class PrivateCommentController {
     public void deleteComment(@PathVariable Long userId,
                               @PathVariable Long commentId) {
         log.info("Запрос на удаление комментария: DELETE /users/{}/comments/{}", userId, commentId);
-        commentService.deleteComment(userId, commentId);
+        commentService.deleteCommentByUser(userId, commentId);
     }
 }
