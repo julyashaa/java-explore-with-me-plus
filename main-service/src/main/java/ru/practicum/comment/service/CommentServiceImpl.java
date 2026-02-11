@@ -2,8 +2,12 @@ package ru.practicum.comment.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.comment.dto.CommentDto;
+import ru.practicum.comment.dto.GetCommentsDtoParams;
 import ru.practicum.comment.dto.NewCommentDto;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.model.Comment;
@@ -16,7 +20,8 @@ import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -63,6 +68,35 @@ public class CommentServiceImpl implements CommentService {
         return result;
     }
 
+    @Override
+    public List<CommentDto> getUserComments(Long userId, GetCommentsDtoParams params) {
+        log.info("Получение комментариев пользователя с параметрами: {}", params);
+
+        Pageable page = PageRequest.of(
+                params.getFrom() / params.getSize(),
+                params.getSize(),
+                Sort.by("createdOn").descending());
+
+        List<Comment> result = commentRepository.findByAuthorId(userId, page);
+
+        return mapToListCommentDto(result);
+    }
+
+    private List<CommentDto> mapToListCommentDto(List<Comment> comments) {
+        if (comments == null || comments.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return comments.stream()
+                .map(comment -> {
+                            CommentDto dto = commentMapper.toDto(comment);
+                            dto.setAuthor(userMapper.toShortDto(comment.getAuthor()));
+                            return dto;
+                        }
+                )
+                .toList();
+    }
+
     private User getUserOrElseThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
@@ -77,5 +111,4 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Comment with id " + commentId + " not found"));
     }
-
 }

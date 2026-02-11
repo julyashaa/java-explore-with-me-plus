@@ -3,12 +3,17 @@ package ru.practicum.comment.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.comment.dto.CommentDto;
+import ru.practicum.comment.dto.GetCommentsDtoParams;
 import ru.practicum.comment.dto.NewCommentDto;
 import ru.practicum.comment.service.CommentService;
 
+import java.util.List;
+
 @Slf4j
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users/{userId}/comments")
@@ -26,7 +31,15 @@ public class PrivateCommentController {
     @GetMapping("/{commentId}")
     public CommentDto getComment(@PathVariable Long userId,
                                  @PathVariable Long commentId) {
-        log.info("Запрос на получение комментария: Get /users/{}/comments/{}", userId, commentId);
+        log.info("Запрос на получение комментария: GET /users/{}/comments/{}", userId, commentId);
         return commentService.getComment(userId, commentId);
+    }
+
+    @GetMapping
+    public List<CommentDto> getUserComments(@PathVariable Long userId,
+                                            @Valid GetCommentsDtoParams params) {
+        log.info("Запрос на получение комментариев пользователя: GET /users/{}/comments?from={}&size={}",
+                userId, params.getFrom(), params.getSize());
+        return commentService.getUserComments(userId, params);
     }
 }
