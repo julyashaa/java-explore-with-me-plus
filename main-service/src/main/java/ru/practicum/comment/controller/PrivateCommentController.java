@@ -3,6 +3,7 @@ package ru.practicum.comment.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.comment.dto.CommentDto;
@@ -23,6 +24,7 @@ public class PrivateCommentController {
     private final CommentService commentService;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public CommentDto createComment(@PathVariable Long userId,
                                     @RequestBody @Valid NewCommentDto newCommentDto) {
         log.info("Запрос на создание комментария: POST /users/{}/comments", userId);
@@ -50,5 +52,13 @@ public class PrivateCommentController {
                                     @RequestBody @Valid UpdateCommentDto updateCommentDto) {
         log.info("Запрос на обновление комментария : PATCH /users/{}/comments/{}", userId, commentId);
         return commentService.updateComment(userId, commentId, updateCommentDto);
+    }
+
+    @DeleteMapping("/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteComment(@PathVariable Long userId,
+                              @PathVariable Long commentId) {
+        log.info("Запрос на удаление комментария: DELETE /users/{}/comments/{}", userId, commentId);
+        commentService.deleteComment(userId, commentId);
     }
 }

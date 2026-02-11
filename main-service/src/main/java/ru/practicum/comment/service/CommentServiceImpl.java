@@ -106,6 +106,19 @@ public class CommentServiceImpl implements CommentService {
         return result;
     }
 
+    @Override
+    public void deleteComment(Long userId, Long commentId) {
+        log.info("Удаление комментария с id: {}", commentId);
+
+        Comment comment = getCommentOrElseThrow(commentId);
+
+        throwIfUserNotAuthorComment(userId, comment);
+
+        commentRepository.delete(comment);
+
+        log.info("Комментарий с id {} удален", userId);
+    }
+
     private List<CommentDto> mapToListCommentDto(List<Comment> comments) {
         if (comments == null || comments.isEmpty()) {
             return Collections.emptyList();
@@ -137,7 +150,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private void throwIfUserNotAuthorComment(Long userId, Comment comment) {
-        if(!comment.getAuthor().getId().equals(userId)) {
+        if (!comment.getAuthor().getId().equals(userId)) {
             throw new ForbiddenException("User with id " + userId + " not author comment");
         }
     }

@@ -16,4 +16,6 @@ public interface CommentService {
     List<CommentDto> getUserComments(Long userId, GetCommentsDtoParams params);
 
     CommentDto updateComment(Long userId, Long commentId, UpdateCommentDto newCommentDto);
+
+    void deleteComment(Long userId, Long commentId);
 }
