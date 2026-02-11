@@ -18,7 +18,11 @@ public interface CommentService {
 
     List<CommentDto> getCommentsByParams(GetCommentsAdminDtoParams params);
 
-    CommentDto updateComment(Long userId, Long commentId, UpdateCommentDto newCommentDto);
+    CommentDto updateComment(Long commentId, UpdateCommentDto updateCommentDto);
+
+    CommentDto updateComment(Long userId, Long commentId, UpdateCommentDto updateCommentDto);
+
+    void deleteComment(Long commentId);
 
     void deleteComment(Long userId, Long commentId);
 }

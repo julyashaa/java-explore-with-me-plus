@@ -121,6 +121,25 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    public CommentDto updateComment(Long commentId, UpdateCommentDto updateCommentDto) {
+        log.info("Обновление комментария с id: {}", commentId);
+
+        Comment comment = getCommentOrElseThrow(commentId);
+
+        String text = updateCommentDto.getText();
+        if (text != null) {
+            comment.setText(text);
+            comment.setEditedOn(LocalDateTime.now());
+        }
+        Comment savedComment = commentRepository.save(comment);
+        log.info("Комментарий обновлен {}", savedComment);
+
+        CommentDto result = commentMapper.toDto(savedComment);
+        result.setAuthor(userMapper.toShortDto(savedComment.getAuthor()));
+        return result;
+    }
+
+    @Override
     public CommentDto updateComment(Long userId, Long commentId, UpdateCommentDto updateCommentDto) {
         log.info("Обновление комментария с id: {}", commentId);
 
@@ -143,6 +162,17 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    public void deleteComment(Long commentId) {
+        log.info("Удаление комментария с id: {}", commentId);
+
+        Comment comment = getCommentOrElseThrow(commentId);
+
+        commentRepository.delete(comment);
+
+        log.info("Комментарий с id {} удален", commentId);
+    }
+
+    @Override
     public void deleteComment(Long userId, Long commentId) {
         log.info("Удаление комментария с id: {}", commentId);
 
@@ -152,7 +182,7 @@ public class CommentServiceImpl implements CommentService {
 
         commentRepository.delete(comment);
 
-        log.info("Комментарий с id {} удален", userId);
+        log.info("Комментарий с id {} удален", commentId);
     }
 
     private List<CommentDto> mapToListCommentDto(List<Comment> comments) {
