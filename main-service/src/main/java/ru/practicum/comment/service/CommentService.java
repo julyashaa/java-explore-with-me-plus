@@ -16,6 +16,8 @@ public interface CommentService {
 
     List<ShortCommentDto> getEventComments(Long eventId, GetCommentsDtoParams params);
 
+    List<CommentDto> getCommentsByParams(GetCommentsAdminDtoParams params);
+
     CommentDto updateComment(Long userId, Long commentId, UpdateCommentDto newCommentDto);
 
     void deleteComment(Long userId, Long commentId);

@@ -5,11 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import ru.practicum.comment.dto.*;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.model.Comment;
 import ru.practicum.comment.repository.CommentRepository;
+import ru.practicum.comment.repository.specification.CommentSpecification;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.exception.ForbiddenException;
@@ -67,11 +69,12 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto getComment(Long userId, Long commentId) {
         log.info("Получение комментария с id: {}", commentId);
 
-        User user = getUserOrElseThrow(userId);
+        getUserOrElseThrow(userId);
+
         Comment comment = getCommentOrElseThrow(commentId);
 
         CommentDto result = commentMapper.toDto(comment);
-        result.setAuthor(userMapper.toShortDto(user));
+        result.setAuthor(userMapper.toShortDto(comment.getAuthor()));
 
         return result;
     }
@@ -80,10 +83,7 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentDto> getUserComments(Long userId, GetCommentsDtoParams params) {
         log.info("Получение комментариев пользователя с параметрами: {}", params);
 
-        Pageable page = PageRequest.of(
-                params.getFrom() / params.getSize(),
-                params.getSize(),
-                Sort.by("createdOn").descending());
+        Pageable page = getPageWithSortOnCreatedOn(params.getFrom(), params.getSize());
 
         List<Comment> result = commentRepository.findByAuthorId(userId, page);
 
@@ -94,14 +94,30 @@ public class CommentServiceImpl implements CommentService {
     public List<ShortCommentDto> getEventComments(Long eventId, GetCommentsDtoParams params) {
         log.info("Получение комментариев ивента с параметрами: {}", params);
 
-        Pageable page = PageRequest.of(
-                params.getFrom() / params.getSize(),
-                params.getSize(),
-                Sort.by("createdOn").descending());
+        Pageable page = getPageWithSortOnCreatedOn(params.getFrom(), params.getSize());
 
         List<Comment> result = commentRepository.findByEventId(eventId, page);
 
-        return  mapToListShortCommentDto(result);
+        return mapToListShortCommentDto(result);
+    }
+
+    @Override
+    public List<CommentDto> getCommentsByParams(GetCommentsAdminDtoParams params) {
+        log.info("Получение комментариев админом с параметрами: {}", params);
+
+        Pageable pageable = getPageWithSortOnCreatedOn(params.getFrom(), params.getSize());
+
+        Specification<Comment> commentSpecification = CommentSpecification.withFilters(
+                params.getIds(),
+                params.getUserId(),
+                params.getEventId(),
+                params.getRangeStart(),
+                params.getRangeEnd()
+        );
+
+        List<Comment> comments = commentRepository.findAll(commentSpecification, pageable).getContent();
+
+        return mapToListCommentDto(comments);
     }
 
     @Override
@@ -162,6 +178,13 @@ public class CommentServiceImpl implements CommentService {
         return comments.stream()
                 .map(commentMapper::toShortDto)
                 .toList();
+    }
+
+    private PageRequest getPageWithSortOnCreatedOn(Integer from, Integer size) {
+        return PageRequest.of(
+                from / size,
+                size,
+                Sort.by("createdOn").descending());
     }
 
     private User getUserOrElseThrow(Long userId) {
