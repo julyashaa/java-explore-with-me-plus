@@ -470,6 +470,15 @@
       "request": {
         "method": "PATCH",
         "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{{request_body}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
           "raw": "{{baseUrl}}/users/{{uid}}/comments/{{commentId}}",
           "host": [
@@ -933,6 +942,15 @@
       "request": {
         "method": "PATCH",
         "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{{request_body}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
           "raw": "{{baseUrl}}/admin/comments/{{commentId}}",
           "host": [
