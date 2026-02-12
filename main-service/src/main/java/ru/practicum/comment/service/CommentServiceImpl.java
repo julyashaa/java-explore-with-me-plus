@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.comment.dto.*;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.model.Comment;
@@ -26,6 +27,7 @@ import java.util.List;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
 
@@ -57,6 +59,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ShortCommentDto getComment(Long commentId) {
         log.info("Получение комментария с id: {}", commentId);
 
@@ -66,6 +69,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CommentDto getCommentByUser(Long userId, Long commentId) {
         log.info("Получение комментария с id: {}", commentId);
 
@@ -80,6 +84,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CommentDto> getUserComments(Long userId, GetCommentsDtoParams params) {
         log.info("Получение комментариев пользователя с параметрами: {}", params);
 
@@ -91,6 +96,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ShortCommentDto> getEventComments(Long eventId, GetCommentsDtoParams params) {
         log.info("Получение комментариев ивента с параметрами: {}", params);
 
@@ -102,6 +108,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CommentDto> getCommentsByParams(GetCommentsAdminDtoParams params) {
         log.info("Получение комментариев админом с параметрами: {}", params);
 
